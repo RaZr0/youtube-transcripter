@@ -1,5 +1,5 @@
 import type { Config } from "./config.js";
-import { isPending, ProviderError, type TranscriptProvider } from "./providers/types.js";
+import { isPending, ProviderError, type TranscriptProvider, type TranscriptResult } from "./providers/types.js";
 import type { Repo, VideoRow } from "./repo.js";
 
 /** Errors about the account/configuration rather than a single video: pause the queue, don't burn attempts. */
@@ -118,7 +118,7 @@ export class TranscriptionWorker {
           this.repo.requeue(video.id, this.timing.jobPollIntervalMs);
           return;
         }
-        this.repo.saveTranscript(video.id, this.provider.name, result);
+        this.save(video.id, result);
         return;
       }
 
@@ -128,14 +128,25 @@ export class TranscriptionWorker {
         this.repo.requeue(video.id, this.timing.jobPollIntervalMs);
         return;
       }
-      this.repo.saveTranscript(video.id, this.provider.name, response);
+      this.save(video.id, response);
     } catch (err) {
       this.handleError(video, err);
     }
   }
 
+  private save(videoId: string, result: TranscriptResult): void {
+    if (result.metadata) this.repo.saveMetadata([{ ...result.metadata, id: videoId }]);
+    this.repo.saveTranscript(videoId, result.source ? `${this.provider.name}:${result.source}` : this.provider.name, result);
+  }
+
   private handleError(video: VideoRow, err: unknown): void {
     const message = err instanceof Error ? err.message : String(err);
+
+    if (!this.running) {
+      // Interrupted by shutdown: not the video's fault, try again on next start.
+      this.repo.requeue(video.id, 0);
+      return;
+    }
 
     if (err instanceof ProviderError && ACCOUNT_LEVEL.has(err.code)) {
       const delay = err.retryAfterMs ?? 60_000;

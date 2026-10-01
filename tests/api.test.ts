@@ -17,7 +17,7 @@ function setup() {
   const mock = new MockProvider(1);
   worker = new TranscriptionWorker(repo, mock, { workerConcurrency: 4, maxAttempts: 3 }, { idleDelayMs: 5, jobPollIntervalMs: 0 });
   const sync = new ChannelSync(repo, mock, worker, config);
-  const app = createApp({ repo, sync, worker, config, providerName: "mock" });
+  const app = createApp({ repo, sync, worker, config, providerName: "mock", channelSourceName: "mock" });
   return { app, repo };
 }
 

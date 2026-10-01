@@ -73,6 +73,14 @@ function StatusBanner() {
       </div>
     );
   }
+  if (data.local?.whisperEnabled && !data.local.whisperAvailable) {
+    return (
+      <div className="banner banner-warn">
+        Whisper is not available ({data.local.whisperError}). Videos with YouTube captions are still transcribed; videos
+        without captions are skipped until it is installed.
+      </div>
+    );
+  }
   if (data.provider === "mock") {
     return <div className="banner banner-info">Demo mode: transcripts are generated fake data (TRANSCRIPT_PROVIDER=mock).</div>;
   }

@@ -59,6 +59,8 @@ export class ChannelSync {
         limit: this.config.maxVideosPerChannel,
       });
       const added = this.repo.addVideos(channelId, refs);
+      const listed = refs.flatMap((ref) => (ref.metadata ? [ref.metadata] : []));
+      if (listed.length) this.repo.fillMissingMetadata(listed);
       if (added) {
         console.log(`[sync] ${channel.title}: ${added} new video(s) queued`);
         this.worker.notify();

@@ -3,6 +3,7 @@ import path from "node:path";
 import express, { type NextFunction, type Request, type Response } from "express";
 import { z } from "zod";
 import type { Config } from "./config.js";
+import type { LocalStatus } from "./providers/local.js";
 import { ProviderError } from "./providers/types.js";
 import type { Repo, TranscriptRow, VideoRow, VideoStatus } from "./repo.js";
 import type { ChannelSync } from "./sync.js";
@@ -15,7 +16,10 @@ export interface AppDeps {
   worker: TranscriptionWorker;
   config: Config;
   providerName: string;
+  channelSourceName: string;
   configurationError?: string;
+  /** For the local provider: whether yt-dlp and Whisper are installed (cached by the caller). */
+  localStatus?: () => LocalStatus | null;
   /** Directory with the built frontend (served when present). */
   staticDir?: string;
 }
@@ -40,11 +44,13 @@ export function createApp(deps: AppDeps) {
   const api = express.Router();
 
   api.get("/status", (_req, res) => {
+    const local = deps.localStatus?.() ?? null;
     res.json({
       provider: deps.providerName,
-      channelSource: deps.config.youtubeApiKey ? "youtube-data-api" : deps.providerName,
+      channelSource: deps.channelSourceName,
       transcriptMode: deps.config.transcriptMode,
-      configurationError: deps.configurationError ?? null,
+      configurationError: deps.configurationError ?? local?.ytdlpError ?? null,
+      local,
       worker: worker.status(),
       queue: repo.queueStats(),
     });

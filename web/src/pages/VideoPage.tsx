@@ -44,7 +44,8 @@ export function VideoPage() {
         {transcript && (
           <>
             {" "}
-            · {formatNumber(transcript.wordCount)} words · language: {transcript.language ?? "unknown"}
+            · {formatNumber(transcript.wordCount)} words · language: {transcript.language ?? "unknown"} · source:{" "}
+            {describeSource(transcript.provider)}
           </>
         )}{" "}
         · <a href={video.url} target="_blank" rel="noreferrer">Open on YouTube</a>{" "}
@@ -97,6 +98,14 @@ export function VideoPage() {
       </div>
     </div>
   );
+}
+
+function describeSource(provider: string): string {
+  if (provider.endsWith("youtube-captions")) return "YouTube captions";
+  if (provider.endsWith("youtube-auto-captions")) return "YouTube automatic captions";
+  const whisper = /whisper-(.+)$/.exec(provider);
+  if (whisper) return `Whisper (${whisper[1]}, on this computer)`;
+  return provider;
 }
 
 function SegmentList({ segments, find, onSeek }: { segments: Segment[]; find: string; onSeek: (t: number) => void }) {

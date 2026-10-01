@@ -185,6 +185,21 @@ export class Repo {
     })();
   }
 
+  /** Like saveMetadata, but only fills empty fields — listing data is approximate, so it never overwrites. */
+  fillMissingMetadata(items: VideoMetadata[]): void {
+    const update = this.db.prepare(
+      `UPDATE videos SET
+         title = COALESCE(title, ?), description = COALESCE(description, ?), thumbnail_url = COALESCE(thumbnail_url, ?),
+         published_at = COALESCE(published_at, ?), duration_seconds = COALESCE(duration_seconds, ?)
+       WHERE id = ?`,
+    );
+    this.db.transaction(() => {
+      for (const m of items) {
+        update.run(m.title ?? null, m.description ?? null, m.thumbnailUrl ?? null, m.publishedAt ?? null, m.durationSeconds ?? null, m.id);
+      }
+    })();
+  }
+
   getVideo(id: string): VideoRow | undefined {
     return this.db.prepare(`SELECT * FROM videos WHERE id = ?`).get(id) as VideoRow | undefined;
   }

@@ -6,7 +6,8 @@ services:
     env_file: .env
     environment:
       DATABASE_PATH: /data/transcripter.db
+      WHISPER_MODEL_DIR: /data/models
     volumes:
-      # Transcripts live here and survive container rebuilds/upgrades.
+      # Transcripts (and downloaded Whisper models) live here and survive rebuilds/upgrades.
       - ./data:/data
     restart: unless-stopped

@@ -70,6 +70,13 @@ export interface AppStatus {
   channelSource: string;
   transcriptMode: string;
   configurationError: string | null;
+  local: {
+    ytdlpVersion: string | null;
+    ytdlpError: string | null;
+    whisperEnabled: boolean;
+    whisperAvailable: boolean;
+    whisperError: string | null;
+  } | null;
   worker: { running: boolean; active: number; concurrency: number; pausedUntil: string | null; pauseReason: string | null };
   queue: Stats;
 }

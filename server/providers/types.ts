@@ -11,6 +11,8 @@ export interface ChannelInfo {
 export interface VideoRef {
   id: string;
   kind: VideoKind;
+  /** Some sources return titles etc. while listing, saving a request per video later. */
+  metadata?: VideoMetadata;
 }
 
 export interface VideoMetadata {
@@ -34,6 +36,10 @@ export interface TranscriptResult {
   language?: string;
   availableLanguages?: string[];
   segments: TranscriptSegment[];
+  /** Where the text came from, e.g. "captions", "auto-captions", "whisper:small". */
+  source?: string;
+  /** Exact metadata learned while transcribing (replaces approximate listing data). */
+  metadata?: VideoMetadata;
 }
 
 /** The transcript is not ready yet; poll again later with this job id. */

@@ -1,0 +1,3 @@
+# Free local transcription (TRANSCRIPT_PROVIDER=local). Install with: npm run setup:local
+yt-dlp[default]
+faster-whisper

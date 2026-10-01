@@ -1,14 +1,18 @@
 import type { Config } from "../config.js";
+import { LocalTranscriber } from "./local.js";
 import { MockProvider } from "./mock.js";
 import { SupadataClient } from "./supadata.js";
 import { ProviderError, type ChannelSource, type TranscriptProvider } from "./types.js";
 import { YouTubeDataApiSource } from "./youtube-data-api.js";
+import { YtDlp, YtDlpChannelSource } from "./ytdlp.js";
 
 export interface Providers {
   channels: ChannelSource;
   transcripts: TranscriptProvider;
   /** Human-readable reason the app cannot transcribe yet (e.g. missing API key), if any. */
   configurationError?: string;
+  /** Set for the local provider: reports whether yt-dlp / Whisper are installed. */
+  local?: LocalTranscriber;
 }
 
 /** Fails every call with a clear message, so the UI can explain what to configure. */
@@ -32,6 +36,14 @@ export function createProviders(config: Config): Providers {
   }
 
   const youtube = config.youtubeApiKey ? new YouTubeDataApiSource(config.youtubeApiKey) : undefined;
+
+  if (config.provider === "local") {
+    const ytdlp = new YtDlp(config.local);
+    const local = new LocalTranscriber(ytdlp, config.transcriptLang);
+    // The official API is free and more robust for listing when a key is configured.
+    return { channels: youtube ?? new YtDlpChannelSource(ytdlp), transcripts: local, local };
+  }
+
   if (!config.supadataApiKey) {
     const message =
       "SUPADATA_API_KEY is not set. Get a key at https://supadata.ai and restart the server (or set TRANSCRIPT_PROVIDER=mock to try the app with fake data).";
