@@ -1,0 +1,12 @@
+services:
+  transcripter:
+    build: .
+    ports:
+      - "3000:3000"
+    env_file: .env
+    environment:
+      DATABASE_PATH: /data/transcripter.db
+    volumes:
+      # Transcripts live here and survive container rebuilds/upgrades.
+      - ./data:/data
+    restart: unless-stopped
